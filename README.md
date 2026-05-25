@@ -73,7 +73,11 @@ El projecte també inclou un programa en Python per visualitzar i processar les 
 # Autor
 
 Mar Bulló Porta  
+
 Grau en Enginyeria Biomèdica – Universitat de Girona
+
 Treball Final de Grau
+
 Tutor: Carles Pous Sabadí
+
 Curs 2025/26
