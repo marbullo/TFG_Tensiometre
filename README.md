@@ -43,12 +43,12 @@ El projecte també inclou un programa en Python per visualitzar i processar les 
 3. Compilar i carregar el programa.
 
 #   Python
-    1. Instal·lar les llibreries necessàries:
+1. Instal·lar les llibreries necessàries:
 
     ```bash
     pip install matplotlib numpy scipy pyserial
     ```
-    2. Executar el programa 
+2. Executar el programa 
 
 # FUNCIONAMENT DEL SISTEMA 
 1. Python envia el missatge `START` a l’ESP32.
