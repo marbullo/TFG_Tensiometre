@@ -171,8 +171,8 @@ def on_close(_event):
             map_amp = amplituds[idx_map]
             map_pressio = pressions[idx_map]
 
-            target_sys = 0.42 * map_amp
-            target_dia = 0.82 * map_amp
+            target_sys = 0.47 * map_amp
+            target_dia = 0.72 * map_amp
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
             rang_sys_min = map_pressio + 10
