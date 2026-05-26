@@ -23,6 +23,8 @@ vb_buf = deque(maxlen=MAX_POINTS)
 
 # ─ SÈRIE ─
 ser = serial.Serial(PORT, BAUDRATE, timeout=1)
+ser.setDTR(False)
+ser.setRTS(False)
 time.sleep(1.5)
 ser.write(b"START\n")
 t0 = time.time()
@@ -172,7 +174,7 @@ def on_close(_event):
             map_pressio = pressions[idx_map]
 
             target_sys = 0.47 * map_amp
-            target_dia = 0.72 * map_amp
+            target_dia = 0.77* map_amp
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
             rang_sys_min = map_pressio + 10
@@ -228,12 +230,12 @@ def on_close(_event):
             print("No hi ha prou dades")
 
 
-    ser.close()
-
-
 fig.canvas.mpl_connect("close_event", on_close)
 
 ani = FuncAnimation(fig, animate, interval=50, cache_frame_data=False)
 
 plt.tight_layout()
 plt.show()
+
+input("Prem ENTER per tancar...")
+ser.close()

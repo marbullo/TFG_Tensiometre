@@ -220,40 +220,41 @@ void mostrar_pressio(String estat, float pressio) {
 }
 
 void mostrar_resultats_finals() {
-  //FUNCIÓ PER MOSTRAR PRESSIÓ SISTÒLICA I DIASTÒLICA
+
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Esperant resultats", 20, 80, 4);
 
-  while (!Serial.available()) {
-    delay(10);
-  }
+  while (true) {
 
-  String msg = Serial.readStringUntil('\n');
-  msg.trim();
+    if (Serial.available()) {
 
-  if (msg.startsWith("RESULTATS:")) {
+      String msg = Serial.readStringUntil('\n');
+      msg.trim();
 
-    msg.replace("RESULTATS:", "");
+      if (msg.startsWith("RESULTATS:")) {
 
-    int separador = msg.indexOf(',');
+        msg.replace("RESULTATS:", "");
 
-    int sistolica = msg.substring(0, separador).toInt();
-    int diastolica = msg.substring(separador + 1).toInt();
+        int separador = msg.indexOf(',');
 
-    tft.fillScreen(TFT_BLACK);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        int sistolica = msg.substring(0, separador).toInt();
+        int diastolica = msg.substring(separador + 1).toInt();
 
-    tft.drawString("RESULTATS", 40, 20, 4);
+        tft.fillScreen(TFT_BLACK);
 
-    tft.drawString("SYS:", 20, 80, 4);
-    tft.drawString(String(sistolica), 120, 70, 6);
+        tft.drawString("RESULTATS", 40, 20, 4);
 
-    tft.drawString("DIA:", 20, 150, 4);
-    tft.drawString(String(diastolica), 120, 140, 6);
-    // Mantenir els resultats a pantalla
-    while (true) {
-      delay(1000);
+        tft.drawString("SYS:", 20, 80, 4);
+        tft.drawString(String(sistolica), 120, 70, 6);
+
+        tft.drawString("DIA:", 20, 150, 4);
+        tft.drawString(String(diastolica), 120, 140, 6);
+
+        return;
+      }
     }
+
+    delay(10);
   }
 }
