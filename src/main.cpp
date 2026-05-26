@@ -251,5 +251,9 @@ void mostrar_resultats_finals() {
 
     tft.drawString("DIA:", 20, 150, 4);
     tft.drawString(String(diastolica), 120, 140, 6);
+    // Mantenir els resultats a pantalla
+    while (true) {
+      delay(1000);
+    }
   }
 }

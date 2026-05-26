@@ -209,7 +209,7 @@ def on_close(_event):
                 ser.flush()
 
                 print("Resultats enviats")
-                time.sleep(1000)
+                time.sleep(1)
 
             print("\n--- RESULTATS ---")
             print(f"MAP: {map_pressio:.2f} mmHg")
@@ -228,7 +228,7 @@ def on_close(_event):
             print("No hi ha prou dades")
 
 
-    # ser.close()
+    ser.close()
 
 
 fig.canvas.mpl_connect("close_event", on_close)
