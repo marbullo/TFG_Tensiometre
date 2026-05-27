@@ -140,7 +140,7 @@ void inflar_fins_no_osc(){
       finestra_plena = true;
     }
     if (!hi_ha_oscil()) break;
-    if (pressio > 240) break;
+    if (pressio > 200) break;
     delay(15);
   }
 }

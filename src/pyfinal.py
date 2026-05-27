@@ -54,7 +54,7 @@ def animate(_):
         if not line:
             continue
 
-        print(line)
+        #print(line)
 
         m = regex.search(line)
         if not m:
@@ -173,7 +173,7 @@ def on_close(_event):
             map_amp = amplituds[idx_map]
             map_pressio = pressions[idx_map]
 
-            target_sys = 0.47 * map_amp
+            target_sys = 0.40 * map_amp
             target_dia = 0.77* map_amp
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
