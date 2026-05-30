@@ -5,7 +5,7 @@ from collections import deque
 import numpy as np
 from scipy import signal
 
-# ─ CONFIG ─
+# CONFIGURACIÓ
 PORT = "COM8"
 BAUDRATE = 115200
 WIN_SEC = 20
@@ -16,12 +16,12 @@ regex = re.compile(
     r"Pasbaix:\s*([-+]?\d+(?:\.\d+)?)\s*mmHg\s*\|\s*Pasbanda:\s*([-+]?\d+(?:\.\d+)?)\s*V"
 )
 
-# ─ BUFFERS ─
+# BUFFERS 
 t_buf  = deque(maxlen=MAX_POINTS)
 pb_buf = deque(maxlen=MAX_POINTS)
 vb_buf = deque(maxlen=MAX_POINTS)
 
-# ─ SÈRIE ─
+# SÈRIE
 ser = serial.Serial(PORT, BAUDRATE, timeout=1)
 ser.setDTR(False)
 ser.setRTS(False)
@@ -30,7 +30,7 @@ ser.write(b"START\n")
 t0 = time.time()
 print(f"Connectat a {PORT} a {BAUDRATE} bps.")
 
-# ─ GRÀFIQUES ─
+# GRÀFIQUES 
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(9, 6))
 
 (line_pb,) = ax1.plot([], [], label="Pasbaix (mmHg)")
@@ -45,7 +45,7 @@ ax2.set_xlabel("Temps (s)")
 ax2.grid(True)
 ax2.legend()
 
-# ─ ANIMACIÓ ─
+# ANIMACIÓ 
 def animate(_):
     while ser.in_waiting:
         raw = ser.readline()
@@ -53,8 +53,6 @@ def animate(_):
 
         if not line:
             continue
-
-        #print(line)
 
         m = regex.search(line)
         if not m:
@@ -82,7 +80,7 @@ def animate(_):
 
     return line_pb, line_vb
 
-# ─ GUARDAR + CÀLCUL ─
+# GUARDAR + CÀLCUL PRESSIÓ
 def on_close(_event):
     if len(t_buf) >= 2:
         t_list  = list(t_buf)
@@ -105,20 +103,19 @@ def on_close(_event):
 
         print("Gràfica guardada")
 
-        # ───── CÀLCUL PRESSIÓ ─────
+        # CÀLCUL PRESSIÓ 
         t_np = np.array(t_list)
         pb_np = np.array(pb_list)
         vb_np = np.array(vb_list)
 
-        # començar desinflament = màxim de pressió
+        # comença desinflament = màxim de pressió
         idx_ini = np.argmax(pb_np)
 
         t_des = t_np[idx_ini:]
         pb_des = pb_np[idx_ini:]
         vb_des = vb_np[idx_ini:]
 
-        # descartar primers segons del desinflament per evitar transitori
-        T_DESCARTAR = 1.5  # descartem els primers 2 seg
+        T_DESCARTAR = 1.0 # descartem el primer seg
         mask_inici = (t_des - t_des[0]) > T_DESCARTAR
 
         t_des = t_des[mask_inici]
@@ -153,8 +150,9 @@ def on_close(_event):
             amp = vb_des[p] - vb_des[v]
 
             if amp > 0:
+                idx_pressio=max(0,p-150)
                 amplituds.append(amp)
-                pressions.append(pb_des[p])
+                pressions.append(pb_des[idx_pressio])
 
         amplituds = np.array(amplituds)
         pressions = np.array(pressions)
@@ -172,7 +170,7 @@ def on_close(_event):
             ]
 
             # Ignorem els primers punts vàlids per evitar errors
-            idx_valids_map = idx_valids_map[5:]
+           # idx_valids_map = idx_valids_map[5:]
 
             if len(idx_valids_map) > 0:
                 idx_map = max(idx_valids_map, key=lambda i: amplituds[i])
@@ -182,8 +180,8 @@ def on_close(_event):
             map_amp = amplituds[idx_map]
             map_pressio = pressions[idx_map]
 
-            target_sys = 0.38* map_amp
-            target_dia = 0.88* map_amp
+            target_sys = 0.42* map_amp
+            target_dia = 0.8* map_amp
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
             rang_sys_min = map_pressio + 5

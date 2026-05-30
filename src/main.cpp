@@ -5,16 +5,16 @@
 TFT_eSPI tft = TFT_eSPI();
 
 /* ────── PINS ────── */
-const int sortida_bomba    = 25;  // MOSFET bomba (PWM)
-const int sortida_valvula  = 26;  // MOSFET/relé vàlvula
-const int filtrat_pasbaix  = 35;  // DC (pressió)
-const int filtrat_pasbanda = 34;  // AC (oscil·lació)
+const int sortida_bomba    = 25;  
+const int sortida_valvula  = 26;  
+const int filtrat_pasbaix  = 35;  
+const int filtrat_pasbanda = 34;  
 
 /* ────── PWM BOMBA ────── */
 const uint8_t  PWM_CH   = 0;
 const uint16_t PWM_FREQ = 20000;
 const uint8_t  PWM_BITS = 8;
-const uint8_t  DUTY_ON  = 255; //255 es al 100% 
+const uint8_t  DUTY_ON  = 255; 
 
 /* ────── variables detectar oscil ────── */
 const int MIDA_FINESTRA = 50;
@@ -60,12 +60,12 @@ void engegar_bomba() {
 
   ledcSetup(PWM_CH, PWM_FREQ, PWM_BITS);
   ledcAttachPin(sortida_bomba, PWM_CH);
-  ledcWrite(PWM_CH, 0);                   // bomba OFF
+  ledcWrite(PWM_CH, 0);                   // bomba apagada
 
 
-  while (!Serial.available()) { delay(10); }           // while- esperem que arribi start des de python i tanquem vàlvula 
+  while (!Serial.available()) { delay(10); }           // while- esperem que arribi un missatge des de python  
   String start = Serial.readStringUntil('\n'); start.trim();
-  while (start != "START") {                             // si no és START, segueix esperant
+  while (start != "START") {                             // si el missatge no és START, segueix esperant
     while (!Serial.available()) { delay(10); }
     start = Serial.readStringUntil('\n'); start.trim();
   }
@@ -73,8 +73,9 @@ void engegar_bomba() {
   ledcWrite(PWM_CH, DUTY_ON);           // bomba ON
 }
 
-/* ────── LLEGIR I ENVIAR ────── */
+
 void enviar_python(float pressio, float volts_banda) {
+  //envia la pressio en mmHg i el pasbanda al python
   Serial.print("Pasbaix: ");
   Serial.print(pressio, 2);
   Serial.print(" mmHg | Pasbanda: ");
@@ -83,6 +84,7 @@ void enviar_python(float pressio, float volts_banda) {
  }
 
 void llegir_pressions(float &pressio, float &volts_banda){
+  //llegeix les senyals del pasbanda i pasbaix
   int adc = analogRead(filtrat_pasbaix);
   float volts = (adc / 4095.0f) * 3.3f;
   pressio = volts_a_mmHg(volts);
@@ -92,6 +94,7 @@ void llegir_pressions(float &pressio, float &volts_banda){
 }
 
 float calcular_amplitud() {
+  //calcula l'amplitud d'una finestra temporal del senyal pasbanda 
   float max = finestra[0];
   float min = finestra[0];
 
@@ -104,7 +107,8 @@ float calcular_amplitud() {
 }
 
 bool hi_ha_oscil(){
-  if (!finestra_plena) return true;  // encara no podem decidir
+  //retorna true si hi ha oscil·lació i false si no n'hi ha 
+  if (!finestra_plena) return true;  // si la finestra no esta plena considerem que hi ha oscil·lació
   float amplitud = calcular_amplitud();
   if (amplitud < amplitud_llindar) comptador_sense_pols++;
   else comptador_sense_pols=0;
@@ -113,6 +117,7 @@ bool hi_ha_oscil(){
 }
 
 void inflar_fins_no_osc(){
+  //infla en braçalet fins que deix de detectar-se oscil·lació
   float pressio = 0.0;
   float volts_banda = 0.0;
   comptador_sense_pols=0;
@@ -146,6 +151,7 @@ void inflar_fins_no_osc(){
 }
 
 void desinflar() {
+  //es desinfla el braçalet fins que no hi hagi oscil·lació o fins que el braçalet arribi a 10mmHg
   float pressio = 0.0;
   float volts_banda = 0.0;
   comptador_sense_pols = 0;
@@ -164,7 +170,7 @@ void desinflar() {
       enviar_python(pressio, volts_banda);
       mostrar_pressio("Desinflant...", pressio);
 
-      // IMPORTANT: guardar mostra per detectar oscil·lacions
+      // Guardem mostra per detectar oscil·lacions
       finestra[index_finestra] = volts_banda;
       index_finestra++;
 
@@ -182,14 +188,14 @@ void desinflar() {
     // Parem quan ja no hi ha oscil·lació
     if (pressio<40 && hem_detectat_pols && !oscil) break;
 
-    //seguretat
+    //si a 10 mmGf encara es detecta oscil·lació parem igual
     if (pressio < 10) break;
     
   }
 }
 
 void ini_pantalla(){
-  //FUNCIÓ PER INICIALITZAR LA PANTALLA
+  //Inicialitzem la pantalla
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
@@ -199,62 +205,44 @@ void ini_pantalla(){
 }
 
 void mostrar_pressio(String estat, float pressio) {
-  //FUNCIÓ PER MOSTRAR VALORS DE PRESSIÓ DURANT INFLAT I DESINFLAT
+  //Mostrem els valors de pressió per pantalla 
   static unsigned long ultim_update = 0;
   if (millis() - ultim_update < 150) return;
   ultim_update = millis();
-  
   tft.fillRect(20, 50, 220, 40, TFT_BLACK);// esborrem estat
-
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.drawString(estat, 20, 50, 4);
-
   tft.fillRect(20, 90, 220, 80, TFT_BLACK);// esborrem numero
-
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
   char textPressio[5];
   sprintf(textPressio, "%3d", (int)pressio);
-
   tft.drawString(textPressio, 50, 100, 8);
 }
 
 void mostrar_resultats_finals() {
-
+  //Mostrem els valors de pressió sistòlica i diastòlica per pantalla
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Esperant resultats", 20, 80, 4);
 
   while (true) {
-
     if (Serial.available()) {
-
       String msg = Serial.readStringUntil('\n');
       msg.trim();
-
       if (msg.startsWith("RESULTATS:")) {
-
         msg.replace("RESULTATS:", "");
-
         int separador = msg.indexOf(',');
-
         int sistolica = msg.substring(0, separador).toInt();
         int diastolica = msg.substring(separador + 1).toInt();
-
         tft.fillScreen(TFT_BLACK);
-
         tft.drawString("RESULTATS", 40, 20, 4);
-
         tft.drawString("SYS:", 20, 80, 4);
         tft.drawString(String(sistolica), 120, 70, 6);
-
         tft.drawString("DIA:", 20, 150, 4);
         tft.drawString(String(diastolica), 120, 140, 6);
-
         return;
       }
     }
-
     delay(10);
   }
 }
