@@ -113,8 +113,17 @@ def on_close(_event):
         # començar desinflament = màxim de pressió
         idx_ini = np.argmax(pb_np)
 
+        t_des = t_np[idx_ini:]
         pb_des = pb_np[idx_ini:]
         vb_des = vb_np[idx_ini:]
+
+        # descartar primers segons del desinflament per evitar transitori
+        T_DESCARTAR = 1.5  # descartem els primers 2 seg
+        mask_inici = (t_des - t_des[0]) > T_DESCARTAR
+
+        t_des = t_des[mask_inici]
+        pb_des = pb_des[mask_inici]
+        vb_des = vb_des[mask_inici]
 
         # treure offset
         vb_des = vb_des - np.mean(vb_des)
@@ -151,7 +160,7 @@ def on_close(_event):
         pressions = np.array(pressions)
 
         # filtrar rang útil
-        mask = (pressions > 40) & (pressions < 180)
+        mask = (pressions > 10) & (pressions < 210)
         amplituds = amplituds[mask]
         pressions = pressions[mask]
 
@@ -159,7 +168,7 @@ def on_close(_event):
             # Buscar el MAP només en un rang vàlid de pressions i ignorant el tros inicial del desinflament
             idx_valids_map = [
                 i for i, p in enumerate(pressions)
-                if 60 <= p <= 130
+                if 50 <= p <= 150
             ]
 
             # Ignorem els primers punts vàlids per evitar errors
@@ -173,15 +182,15 @@ def on_close(_event):
             map_amp = amplituds[idx_map]
             map_pressio = pressions[idx_map]
 
-            target_sys = 0.40 * map_amp
-            target_dia = 0.77* map_amp
+            target_sys = 0.38* map_amp
+            target_dia = 0.88* map_amp
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
-            rang_sys_min = map_pressio + 10
-            rang_sys_max = map_pressio + 70
+            rang_sys_min = map_pressio + 5
+            rang_sys_max = map_pressio + 180
 
             rang_dia_min = 40
-            rang_dia_max = map_pressio - 5
+            rang_dia_max = map_pressio
 
             # SISTÒLICA: abans del MAP però descartant pressions  altes
             idx_sys = None
