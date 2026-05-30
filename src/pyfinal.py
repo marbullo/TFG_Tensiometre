@@ -169,9 +169,6 @@ def on_close(_event):
                 if 50 <= p <= 150
             ]
 
-            # Ignorem els primers punts vàlids per evitar errors
-           # idx_valids_map = idx_valids_map[5:]
-
             if len(idx_valids_map) > 0:
                 idx_map = max(idx_valids_map, key=lambda i: amplituds[i])
             else:
@@ -185,10 +182,10 @@ def on_close(_event):
 
             # Rang fisiològic segons MAP per evitar falsos pics inicials
             rang_sys_min = map_pressio + 5
-            rang_sys_max = map_pressio + 180
+            rang_sys_max = map_pressio + 100
 
             rang_dia_min = 40
-            rang_dia_max = map_pressio
+            rang_dia_max = map_pressio-5
 
             # SISTÒLICA: abans del MAP però descartant pressions  altes
             idx_sys = None
